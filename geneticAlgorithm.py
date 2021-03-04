@@ -10,8 +10,9 @@
 import tensorflow as tf
 import random
 import numpy as np
+from snake import snake
 
-pressure = 3  
+pressure = 300
 mutation_chance = 0.2 
 
 def individual():
@@ -26,16 +27,28 @@ def individual():
 def createPopulation(quantity):
   return [individual() for i in range(quantity)]
 
-# def calcularFitness(individual):
-#     """
-#         Calcula el fitness de un individuo concreto.
-#     """
-#     fitness = 0
-#     for i in range(len(individual)):
-#         if individual[i] == modelo[i]:
-#             fitness += 1
-  
-#     return fitness
+def calcularFitness(individual):
+  """
+      Calcula el fitness de un individuo concreto.
+  """
+  model = tf.keras.models.Sequential([
+    tf.keras.layers.InputLayer(input_shape=(24,)),
+    tf.keras.layers.Dense(16, activation='relu'),
+    tf.keras.layers.Dense(16, activation='relu'),
+    tf.keras.layers.Dense(4, activation='softmax')
+  ])
+  for i in range(3):
+    model.layers[i].set_weights(individual[i])
+  game = snake(460, 680, 120, model)
+  duration = 0
+  score = 0
+
+  while 1:
+    final, score, cont = game.game()
+    if final == True:
+      break
+    duration += 1
+  return score**2 + duration/100000 - min(250, 500-cont)/250
 
 def selection_and_reproduction(population):
   """
@@ -48,10 +61,9 @@ def selection_and_reproduction(population):
       Por ultimo muta a los individuos.
 
   """
-  # puntuados = [ (calcularFitness(i), i) for i in population] #Calcula el fitness de cada individuo, y lo guarda en pares ordenados de la forma (5 , [1,2,1,1,4,1,8,9,4,1])
-  # puntuados = [i[1] for i in sorted(puntuados)] #Ordena los pares ordenados y se queda solo con el array de valores
-  # population = puntuados
-  puntuados = population
+  puntuados = [ (calcularFitness(i), i) for i in population] #Calcula el fitness de cada individuo, y lo guarda en pares ordenados de la forma (5 , [1,2,1,1,4,1,8,9,4,1])
+  puntuados = [i[1] for i in sorted(puntuados)] #Ordena los pares ordenados y se queda solo con el array de valores
+  population = puntuados
 
 
   selected =  puntuados[(len(puntuados)-pressure):] #Esta linea selecciona los 'n' individuos del final, donde n viene dado por 'pressure'
@@ -92,10 +104,13 @@ def mutation(population):
     return population
 
 
-# population = crearPoblacion()
+population = createPopulation(1000)
 
-# for i in range(100):
-#     population = selection_and_reproduction(population)
-#     population = mutation(population)
+for i in range(100):
+  print("generation:", i)
+  population = selection_and_reproduction(population)
+  population = mutation(population)
 
-selection_and_reproduction(createPopulation(10))
+# selection_and_reproduction(createPopulation(10))
+# while True:
+#   print(calcularFitness(individual()))

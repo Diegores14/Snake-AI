@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import numpy as np
 
 pygame.init()
 SIZE = 20
@@ -22,9 +23,10 @@ index = {
 INF = 34
 
 class snake():
-  def __init__(self, height, width, speed):
-    # self.NN = NN
-    print(width//SIZE, height//SIZE)
+  def __init__(self, height, width, speed, NN):
+    INF = max(width//SIZE, height//SIZE)
+    self.NN = NN
+    self.cont = 100
     self.map = [[0]*(width//SIZE) for i in range(height//SIZE)]
     self.height = height
     self.width = width
@@ -43,17 +45,18 @@ class snake():
     self.generate_food()
 
   def game(self):
+    self.cont -= 1
     directionaux = self.direction
-    for event in pygame.event.get():
-      if event.type == pygame.QUIT:
-        raise SystemExit("Gracias por jugar!")
+    # for event in pygame.event.get():
+    #   if event.type == pygame.QUIT:
+    #     raise SystemExit("Gracias por jugar!")
 
-      if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_ESCAPE:
-          raise SystemExit("Gracias por jugar!")
-        directionaux = [movx[index[event.key]], movy[index[event.key]]]
+    #   if event.type == pygame.KEYDOWN:
+    #     if event.key == pygame.K_ESCAPE:
+    #       raise SystemExit("Gracias por jugar!")
+    #     directionaux = [movx[index[event.key]], movy[index[event.key]]]
 
-    print(self.get_input())
+    directionaux = self.get_move()
     aux = self.move(directionaux)
     if self.check_move(aux):
       self.direction = directionaux
@@ -71,13 +74,13 @@ class snake():
       self.snake.pop()
 
     if self.end_game():
-      return True, self.score
+      return True, self.score, self.cont
     self.map[aux[1]][aux[0]] = 1
 
     self.UI()
     self.clock.tick(self.speed)
 
-    return False, self.score
+    return False, self.score, self.cont
 
   def UI(self):
     self.screen.fill((0,0,0))
@@ -87,7 +90,7 @@ class snake():
     pygame.display.flip()
 
   def end_game(self):
-    if self.head in self.snake[1:]:
+    if self.head in self.snake[1:] or self.cont == 0:
       return True
     return self.head[0] < 0 or self.head[1] < 0 or self.head[0] >= self.width//SIZE or self.head[1] >= self.height//SIZE
 
@@ -96,8 +99,10 @@ class snake():
       return False
     return True
 
-  def get_move():
-    pass
+  def get_move(self):
+    IN = self.get_input()
+    pos = np.argmax(self.NN.predict(IN)[0])
+    return [movx[pos], movy[pos]]
   
   def get_input(self):
     ans = [INF]*24
@@ -112,8 +117,8 @@ class snake():
 
         if(not self.check_range(x, y)):
           ans[j] = min(ans[j], i)
-    
-    return ans
+
+    return np.array([ans])/INF
 
   def check_range(self, x, y):
     return 0 <= x < self.width//SIZE and 0 <= y < self.height//SIZE
