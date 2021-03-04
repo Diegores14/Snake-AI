@@ -15,6 +15,11 @@ from snake import snake
 pressure = 300
 mutation_chance = 0.2 
 
+
+def compare(x, y):
+  print(x, y)
+  return x[0] - y[0]
+
 def individual():
   layers = tf.keras.models.Sequential([
       tf.keras.layers.InputLayer(input_shape=(24,)),
@@ -48,7 +53,7 @@ def calcularFitness(individual):
     if final == True:
       break
     duration += 1
-  return score**2 + duration/100000 - min(250, 500-cont)/250
+  return (5+score)**2 + duration/20 - min(250, 500-cont)/250
 
 def selection_and_reproduction(population):
   """
@@ -62,7 +67,7 @@ def selection_and_reproduction(population):
 
   """
   puntuados = [ (calcularFitness(i), i) for i in population] #Calcula el fitness de cada individuo, y lo guarda en pares ordenados de la forma (5 , [1,2,1,1,4,1,8,9,4,1])
-  puntuados = [i[1] for i in sorted(puntuados)] #Ordena los pares ordenados y se queda solo con el array de valores
+  puntuados = [i[1] for i in sorted(puntuados, key=lambda a: a[0])] #Ordena los pares ordenados y se queda solo con el array de valores
   population = puntuados
 
 

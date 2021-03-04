@@ -68,6 +68,7 @@ class snake():
     if self.head == self.food:
       self.score += 1
       self.generate_food()
+      self.cont = min(self.cont+100, 500)
     else:
       pos = self.snake[-1]
       self.map[pos[1]][pos[0]] = 0
