@@ -46,7 +46,7 @@ def calcularFitness(individual):
   ])
   for i in range(3):
     model.layers[i].set_weights(individual[i])
-  game = snake(460, 680, 120, model)
+  game.restart(model)
   duration = 0
   score = 0
 
@@ -123,7 +123,7 @@ else:
   population = createPopulation(1000)
   np.save('data', np.array(population, dtype=object))
 
-
+game = snake(460, 680, 120)
 
 for i in range(1000):
   print("generation:", i)

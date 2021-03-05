@@ -23,25 +23,30 @@ index = {
 INF = 34
 
 class snake():
-  def __init__(self, height, width, speed, NN):
+  def __init__(self, height, width, speed):
     INF = max(width//SIZE, height//SIZE)
-    self.NN = NN
-    self.cont = 100
     self.map = [[0]*(width//SIZE) for i in range(height//SIZE)]
     self.height = height
     self.width = width
-    #self.screen = pygame.display.set_mode((self.width, self.height))
-    #pygame.display.set_caption('Snake')
     self.speed = speed
+    self.food = [0, 0]
+    self.screen = pygame.display.set_mode((self.width, self.height))
+    pygame.display.set_caption('Snake')
+    self.clock = pygame.time.Clock()
+
+  def restart(self, NN):
+    self.cont = 100
+    self.NN = NN
     self.direction = movx[0], movy[0]
     self.score = 0
+
     self.head = [(self.width//SIZE)//2, (self.height//SIZE)//2]
-    self.food = [0, 0]
-    self.clock = pygame.time.Clock()
     self.snake = [self.head,[self.head[0]-1, self.head[1]], [self.head[0]-2, self.head[1]]]
+
+    for i in self.map:
+      self.map[i[1]][i[0]] = 0
     for pos in self.snake:
       self.map[pos[1]][pos[0]] = 1
-    #self.screen.fill((200,0,0))
     self.generate_food()
 
   def game(self):
@@ -78,17 +83,17 @@ class snake():
       return True, self.score, self.cont
     self.map[aux[1]][aux[0]] = 1
 
-    #self.UI()
-    #self.clock.tick(self.speed)
+    self.UI()
+    self.clock.tick(self.speed)
 
     return False, self.score, self.cont
 
-  #def UI(self):
-  #  self.screen.fill((0,0,0))
-  #  for i in self.snake:
-  #    pygame.draw.rect(self.screen, (90,90,90), pygame.Rect((i[0]*SIZE, i[1]*SIZE), ([SIZE]*2)))
-  #  pygame.draw.rect(self.screen, (200,0,0), pygame.Rect((self.food[0]*SIZE, self.food[1]*SIZE), ([SIZE]*2)))
-  #  pygame.display.flip()
+  def UI(self):
+    self.screen.fill((0,0,0))
+    for i in self.snake:
+      pygame.draw.rect(self.screen, (90,90,90), pygame.Rect((i[0]*SIZE, i[1]*SIZE), ([SIZE]*2)))
+    pygame.draw.rect(self.screen, (200,0,0), pygame.Rect((self.food[0]*SIZE, self.food[1]*SIZE), ([SIZE]*2)))
+    pygame.display.flip()
 
   def end_game(self):
     if self.head in self.snake[1:] or self.cont == 0:
