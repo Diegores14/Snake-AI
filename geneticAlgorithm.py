@@ -1,5 +1,5 @@
 ''' Network Config
-  Layer Input -> 24 
+  Layer Input -> 24
   Layer 1 -> 16 neurons
   Layer 2 -> 16 neurons
   Layer Ouput -> 4
@@ -11,9 +11,11 @@ import tensorflow as tf
 import random
 import numpy as np
 from snake import snake
+from statistics import plot
+import os
 
 pressure = 300
-mutation_chance = 0.2 
+mutation_chance = 0.2
 
 
 def compare(x, y):
@@ -26,7 +28,7 @@ def individual():
       tf.keras.layers.Dense(16, activation='relu'),
       tf.keras.layers.Dense(16, activation='relu'),
       tf.keras.layers.Dense(4, activation='softmax')
-    ]).layers
+  ]).layers
   return [ layer.get_weights() for layer in layers ]
 
 def createPopulation(quantity):
@@ -53,8 +55,11 @@ def calcularFitness(individual):
     if final == True:
       break
     duration += 1
-  return (5+score)**2 + duration/20 - min(250, 500-cont)/250
-
+  fitness = (5+score)**2 + duration/20 - min(250, 500-cont)/250
+  plot_scores_food.append(score)
+  plot_scores.append(fitness)
+  plot(plot_scores_food, plot_scores)
+  return fitness
 def selection_and_reproduction(population):
   """
       Puntua todos los elementos de la poblacion (population) y se queda con los mejores
@@ -80,7 +85,7 @@ def selection_and_reproduction(population):
     padre = random.sample(selected, 2) #Se eligen dos padres
     for j in range(3):
       punto = random.randint(1,len(population[i][j][0])-1) #Se elige un punto para hacer el intercambio
-        
+
       population[i][j][0][:punto] = padre[0][j][0][:punto] #Se mezcla el material genetico de los padres en cada nuevo individuo
       population[i][j][0][punto:] = padre[1][j][0][punto:]
 
@@ -88,34 +93,47 @@ def selection_and_reproduction(population):
 
       population[i][j][1][:punto] = padre[0][j][1][:punto] #Se mezcla el material genetico de los padres en cada nuevo individuo
       population[i][j][1][punto:] = padre[1][j][1][punto:]
-  
+
   return population #El array 'population' tiene ahora una nueva poblacion de individuos, que se devuelven
 
 
 def mutation(population):
-    """
-        Se mutan los individuos al azar. Sin la mutacion de nuevos genes nunca podria
-        alcanzarse la solucion.
-    """
-    for i in range(len(population)-pressure):
-      if random.random() <= mutation_chance: #Cada individuo de la poblacion (menos los padres) tienen una probabilidad de mutar
-        for j in range(3): 
-          punto = random.randint(0,len(population[i][j][0])-1) #Se elgie un punto al azar
-          population[i][j][0][punto] = np.random.uniform(-1, 1, size=population[i][j][0][punto].shape) #y un nuevo valor para este punto
+  """
+      Se mutan los individuos al azar. Sin la mutacion de nuevos genes nunca podria
+      alcanzarse la solucion.
+  """
+  for i in range(len(population)-pressure):
+    if random.random() <= mutation_chance: #Cada individuo de la poblacion (menos los padres) tienen una probabilidad de mutar
+      for j in range(3):
+        punto = random.randint(0,len(population[i][j][0])-1) #Se elgie un punto al azar
+        population[i][j][0][punto] = np.random.uniform(-1, 1, size=population[i][j][0][punto].shape) #y un nuevo valor para este punto
 
-          punto = random.randint(0,len(population[i][j][1])-1) #Se elgie un punto al azar
-          population[i][j][1][punto] = random.uniform(-1, 1) #y un nuevo valor para este punto
-  
-    return population
+        punto = random.randint(0,len(population[i][j][1])-1) #Se elgie un punto al azar
+        population[i][j][1][punto] = random.uniform(-1, 1) #y un nuevo valor para este punto
+
+  return population
 
 
-population = createPopulation(1000)
+plot_scores_food = []
+plot_scores = []
+if os.path.isfile('data.npy'):
+  population = np.load('data.npy', allow_pickle=True)
+else:
+  print("Creating population...")
+  population = createPopulation(1000)
+  np.save('data', np.array(population, dtype=object))
 
-for i in range(100):
+
+
+for i in range(1000):
   print("generation:", i)
   population = selection_and_reproduction(population)
   population = mutation(population)
-
-# selection_and_reproduction(createPopulation(10))
-# while True:
-#   print(calcularFitness(individual()))
+  np.save('data', np.array(population, dtype=object))
+#if os.path.isfile('score.npy'):
+#  plot_scores = np.load('score.npy', allow_pickle=True)
+#
+#if os.path.isfile('score_food.npy'):
+#  plot_scores_food = np.load('score_food.npy', allow_pickle=True)
+#  np.save('score', plot_scores)
+#  np.save('score_food', plot_scores_food)
